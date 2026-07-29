@@ -4,6 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
 <title>MNZ Training Manager / MNZ 研修管理</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="favicon-32.png" sizes="32x32">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#008290">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="MNZ Training">
 <style>
   :root{
     --teal-900:#00525a;
@@ -968,6 +975,17 @@ const app = {
     this.renderDaySheet(id);
     document.getElementById("dayOverlay").classList.add("open");
   },
+  addToCalendar(id){
+    const e = this.schedule.find(x=>x.id===id);
+    if(!e) return;
+    const ics = buildICS(e);
+    const blob = new Blob([ics], {type:"text/calendar;charset=utf-8"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = `MNZ_${e.id}.ics`;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(()=>URL.revokeObjectURL(url), 2000);
+  },
   renderDaySheet(id){
     const e = this.schedule.find(x=>x.id===id);
     if(!e) return;
@@ -991,6 +1009,9 @@ const app = {
       <span class="badge ${st}">${this.t2(STATUS_LABEL[st].en,STATUS_LABEL[st].ja)}</span>
       <span class="badge" style="background:var(--teal-100); color:var(--teal-900); margin-left:6px;">👤 ${escapeHtml(this.entryOwner(e))}</span>
       ${rev.confirmed ? `<div style="margin-top:10px;"><span class="hanko">${this.t2("CONFIRMED","承認済")}</span></div>` : ""}
+      <div class="btn-row" style="margin-top:12px;">
+        <button class="btn ghost" onclick="app.addToCalendar('${id}')">📅 ${this.t2("Add to Calendar","カレンダーに追加")}</button>
+      </div>
     `;
 
     if(e.category === "holiday"){
@@ -1218,6 +1239,28 @@ function svgRing(pct){
       stroke-dasharray="${c}" stroke-dashoffset="${off}" transform="rotate(-90 36 36)"/>
     <text x="36" y="41" text-anchor="middle" font-size="16" font-weight="700" fill="#00525a">${pct}%</text>
   </svg>`;
+}
+function icsEscape(s){
+  return String(s||"").replace(/\\/g,"\\\\").replace(/;/g,"\\;").replace(/,/g,"\\,").replace(/\n/g,"\\n");
+}
+function buildICS(entry){
+  const dateStr = entry.date.replace(/-/g,"");
+  const nextDate = new Date(entry.date+"T00:00:00");
+  nextDate.setDate(nextDate.getDate()+1);
+  const endStr = nextDate.toISOString().slice(0,10).replace(/-/g,"");
+  const titleParts = [entry.titleEn, entry.titleJa].filter(Boolean);
+  const summary = icsEscape(titleParts.join(" / "));
+  const desc = icsEscape(`${entry.ownerEn ? "Owner: "+entry.ownerEn+"\\n" : ""}MNZ Training Manager`);
+  const uid = `${entry.id}@makita-training-manager`;
+  const now = new Date().toISOString().replace(/[-:]/g,"").split(".")[0]+"Z";
+  return [
+    "BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Makita NZ//Training Manager//EN","CALSCALE:GREGORIAN",
+    "BEGIN:VEVENT",
+    `UID:${uid}`, `DTSTAMP:${now}`,
+    `DTSTART;VALUE=DATE:${dateStr}`, `DTEND;VALUE=DATE:${endStr}`,
+    `SUMMARY:${summary}`, `DESCRIPTION:${desc}`,
+    "END:VEVENT","END:VCALENDAR"
+  ].join("\r\n");
 }
 function escapeHtml(s){
   if(s===undefined||s===null) return "";
