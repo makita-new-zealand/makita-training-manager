@@ -1,0 +1,1245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<title>MNZ Training Manager / MNZ 研修管理</title>
+<style>
+  :root{
+    --teal-900:#00525a;
+    --teal-700:#008290;
+    --teal-500:#00a3b3;
+    --teal-100:#e0f0f2;
+    --ink:#111111;
+    --ink-soft:#5c5c5c;
+    --paper:#ffffff;
+    --card:#ffffff;
+    --line:#e2e2e2;
+    --amber:#d69a3e;
+    --amber-100:#fbf1de;
+    --coral:#c85f4a;
+    --coral-100:#f8e9e4;
+    --sage:#4d8f63;
+    --sage-100:#e6f1e8;
+    --sky-100:#eef1f2;
+    --hanko:#b23b2e;
+    --radius:14px;
+    --shadow:0 1px 2px rgba(0,0,0,.06), 0 4px 16px rgba(0,0,0,.06);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Sans","Yu Gothic",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    padding-bottom:70px;
+  }
+  a{color:inherit;}
+  button{font-family:inherit;}
+
+  /* ---------- Header ---------- */
+  header.appbar{
+    position:sticky; top:0; z-index:40;
+    background:linear-gradient(135deg,var(--teal-900),var(--teal-700));
+    color:#fff;
+    padding:14px 16px 12px;
+    box-shadow:var(--shadow);
+  }
+  .appbar-row{display:flex; align-items:center; justify-content:space-between; gap:8px;}
+  .appbar-title{font-size:16px; font-weight:700; letter-spacing:.2px; line-height:1.25;}
+  .appbar-title small{display:block; font-weight:500; font-size:11.5px; opacity:.85; letter-spacing:.3px; margin-top:1px;}
+  .appbar-actions{display:flex; gap:6px; align-items:center;}
+  .pill-btn{
+    background:rgba(255,255,255,.14); color:#fff; border:1px solid rgba(255,255,255,.35);
+    border-radius:100px; padding:6px 12px; font-size:12.5px; font-weight:600; cursor:pointer;
+    white-space:nowrap;
+  }
+  .pill-btn:active{background:rgba(255,255,255,.26);}
+  .profile-chip{
+    background:rgba(255,255,255,.14); border:1px solid rgba(255,255,255,.35); color:#fff;
+    border-radius:100px; padding:6px 10px 6px 6px; font-size:12px; font-weight:600; cursor:pointer;
+    display:flex; align-items:center; gap:6px;
+  }
+  .profile-chip .avatar{
+    width:20px; height:20px; border-radius:50%; background:var(--amber); color:#3a2a0d;
+    display:flex; align-items:center; justify-content:center; font-size:10.5px; font-weight:800;
+  }
+
+  /* ---------- Tabs ---------- */
+  nav.tabbar{
+    position:fixed; bottom:0; left:0; right:0; z-index:40;
+    background:#fff; border-top:1px solid var(--line);
+    display:flex; padding:6px 6px calc(6px + env(safe-area-inset-bottom));
+    box-shadow:0 -2px 12px rgba(20,30,28,.06);
+  }
+  nav.tabbar button{
+    flex:1; background:none; border:none; color:var(--ink-soft); font-size:11px; font-weight:600;
+    display:flex; flex-direction:column; align-items:center; gap:3px; padding:6px 2px; border-radius:10px;
+    cursor:pointer;
+  }
+  nav.tabbar button .ic{font-size:19px; line-height:1;}
+  nav.tabbar button.active{color:var(--teal-700); background:var(--teal-100);}
+
+  main{max-width:720px; margin:0 auto; padding:14px 12px 12px;}
+  .tabpanel{display:none;}
+  .tabpanel.active{display:block;}
+
+  /* ---------- Cards ---------- */
+  .card{
+    background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
+    padding:14px; margin-bottom:12px; box-shadow:var(--shadow);
+  }
+  .card h2{font-size:13px; text-transform:uppercase; letter-spacing:.6px; color:var(--ink-soft); margin:0 0 10px; font-weight:700;}
+  .hero{
+    background:linear-gradient(160deg,#fff, var(--teal-100) 140%);
+    border:1px solid var(--teal-100);
+  }
+  .hero-date{font-size:12.5px; color:var(--teal-700); font-weight:700; letter-spacing:.3px; margin-bottom:6px;}
+  .hero-title{font-size:19px; font-weight:800; line-height:1.35; margin:0 0 4px;}
+  .hero-sub{font-size:13.5px; color:var(--ink-soft); margin-bottom:2px;}
+  .hero-owner{display:inline-flex; align-items:center; gap:6px; font-size:12.5px; font-weight:700; color:var(--teal-900); background:var(--teal-100); padding:4px 10px; border-radius:100px; margin-top:8px;}
+
+  .stat-row{display:flex; gap:10px;}
+  .stat{flex:1; text-align:center; padding:10px 4px; border-radius:10px; background:var(--paper); border:1px solid var(--line);}
+  .stat b{display:block; font-size:20px; font-weight:800; color:var(--teal-700);}
+  .stat span{font-size:10.5px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.4px;}
+
+  .ring-wrap{display:flex; align-items:center; gap:14px;}
+  .ring-label b{font-size:22px;} .ring-label div{font-size:12px; color:var(--ink-soft);}
+
+  /* status badges */
+  .badge{display:inline-block; font-size:11px; font-weight:700; padding:3px 9px; border-radius:100px; letter-spacing:.2px;}
+  .badge.planned{background:var(--sky-100); color:#3b587a;}
+  .badge.completed{background:var(--sage-100); color:var(--sage);}
+  .badge.not_done{background:var(--coral-100); color:var(--coral);}
+  .badge.postponed{background:var(--amber-100); color:#8a611f;}
+  .badge.changed{background:var(--amber-100); color:#8a611f;}
+  .badge.cancelled{background:#eee; color:#888;}
+  .badge.reserve{background:#eee; color:#888;}
+  .badge.to_review{background:var(--coral-100); color:var(--coral);}
+  .badge.confirmed{background:var(--sage-100); color:var(--sage);}
+  .badge.holiday{background:var(--amber-100); color:#8a611f;}
+
+  /* ---------- List rows ---------- */
+  .list-row{
+    display:flex; align-items:center; gap:10px; padding:10px 4px; border-bottom:1px solid var(--line); cursor:pointer;
+  }
+  .list-row:last-child{border-bottom:none;}
+  .list-row:active{background:var(--paper);}
+  .list-date{width:52px; flex:0 0 52px; text-align:center;}
+  .list-date b{display:block; font-size:17px; font-weight:800;}
+  .list-date span{font-size:10px; color:var(--ink-soft); text-transform:uppercase;}
+  .list-main{flex:1; min-width:0;}
+  .list-main .t{font-size:13.5px; font-weight:700; line-height:1.3; overflow:hidden; text-overflow:ellipsis; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;}
+  .list-main .o{font-size:12px; color:var(--ink-soft); margin-top:2px;}
+
+  input[type=text],input[type=search],input[type=date],select,textarea{
+    width:100%; border:1px solid var(--line); border-radius:10px; padding:9px 11px; font-size:14px;
+    background:#fff; color:var(--ink); font-family:inherit;
+  }
+  textarea{resize:vertical; min-height:64px;}
+  label.field-label{display:block; font-size:11.5px; font-weight:700; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.4px; margin:12px 0 5px;}
+  .filter-row{display:flex; gap:8px; margin-bottom:10px; flex-wrap:wrap;}
+  .filter-row > *{flex:1; min-width:100px;}
+
+  .btn{
+    display:inline-flex; align-items:center; justify-content:center; gap:6px;
+    background:var(--teal-700); color:#fff; border:none; border-radius:10px; padding:10px 16px;
+    font-size:13.5px; font-weight:700; cursor:pointer;
+  }
+  .btn.secondary{background:#fff; color:var(--teal-700); border:1px solid var(--teal-700);}
+  .btn.ghost{background:none; color:var(--ink-soft); border:1px solid var(--line);}
+  .btn.danger{background:var(--coral);}
+  .btn.block{width:100%;}
+  .btn:disabled{opacity:.5; cursor:not-allowed;}
+  .btn-row{display:flex; gap:8px; margin-top:10px;}
+
+  /* ---------- Calendar ---------- */
+  .cal-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;}
+  .cal-head b{font-size:15px;}
+  .cal-nav{display:flex; gap:4px;}
+  .cal-nav button{width:32px; height:32px; border-radius:8px; border:1px solid var(--line); background:#fff; font-size:15px; cursor:pointer;}
+  .cal-grid{display:grid; grid-template-columns:repeat(7,1fr); gap:4px;}
+  .cal-dow{font-size:10.5px; text-align:center; color:var(--ink-soft); font-weight:700; padding-bottom:4px;}
+  .cal-cell{
+    aspect-ratio:1/1.05; border-radius:8px; padding:4px; font-size:11px; position:relative; border:1px solid transparent;
+    display:flex; flex-direction:column; cursor:pointer; background:var(--paper);
+  }
+  .cal-cell.empty{visibility:hidden;}
+  .cal-cell.weekend{background:var(--sky-100);}
+  .cal-cell.holiday{background:var(--amber-100);}
+  .cal-cell.today{border-color:var(--teal-700); border-width:2px;}
+  .cal-cell b{font-size:11.5px; font-weight:700;}
+  .cal-dot{width:6px; height:6px; border-radius:50%; margin-top:auto; align-self:flex-start;}
+  .cal-dot.planned{background:#3b587a;}
+  .cal-dot.completed{background:var(--sage);}
+  .cal-dot.not_done{background:var(--coral);}
+  .cal-dot.postponed,.cal-dot.changed{background:var(--amber);}
+  .cal-dot.cancelled,.cal-dot.reserve{background:#aaa;}
+  .cal-dot.to_review{background:var(--coral);}
+  .cal-dot.confirmed{background:var(--sage);}
+  .legend{display:flex; flex-wrap:wrap; gap:10px; margin-top:10px; font-size:11px; color:var(--ink-soft);}
+  .legend span{display:inline-flex; align-items:center; gap:4px;}
+  .legend i{width:8px; height:8px; border-radius:50%; display:inline-block;}
+
+  /* ---------- Modal ---------- */
+  .overlay{
+    position:fixed; inset:0; background:rgba(20,30,28,.45); z-index:80; display:none;
+    align-items:flex-end; justify-content:center;
+  }
+  .overlay.open{display:flex;}
+  .sheet{
+    background:#fff; width:100%; max-width:720px; max-height:92vh; overflow-y:auto;
+    border-radius:18px 18px 0 0; padding:16px 16px calc(20px + env(safe-area-inset-bottom));
+    animation:slideup .22s ease-out;
+  }
+  @keyframes slideup{from{transform:translateY(24px); opacity:0;} to{transform:translateY(0); opacity:1;}}
+  .sheet-head{display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:8px; gap:10px;}
+  .sheet-close{background:var(--paper); border:none; width:32px; height:32px; border-radius:50%; font-size:16px; cursor:pointer; flex:0 0 auto;}
+  .section-divider{border:none; border-top:1px solid var(--line); margin:16px 0;}
+  .subtle{color:var(--ink-soft); font-size:12.5px;}
+
+  .hanko{
+    display:inline-flex; align-items:center; justify-content:center; width:56px; height:56px; border-radius:8px;
+    border:3px solid var(--hanko); color:var(--hanko); font-weight:800; font-size:11px; text-align:center;
+    transform:rotate(-8deg); line-height:1.1; letter-spacing:.5px; flex-shrink:0;
+  }
+
+  .history-item{font-size:12px; color:var(--ink-soft); padding:6px 0; border-bottom:1px dashed var(--line);}
+  .history-item:last-child{border-bottom:none;}
+  .history-item b{color:var(--ink);}
+
+  .voice-item{display:flex; align-items:center; gap:8px; background:var(--paper); border:1px solid var(--line); border-radius:10px; padding:8px 10px; margin-bottom:6px;}
+  .voice-item audio{flex:1; height:32px;}
+  .voice-meta{font-size:10.5px; color:var(--ink-soft); white-space:nowrap;}
+
+  .rec-btn{
+    display:flex; align-items:center; gap:8px; background:var(--coral-100); color:var(--coral);
+    border:1px solid var(--coral); border-radius:10px; padding:10px 14px; font-weight:700; font-size:13px; cursor:pointer; width:100%; justify-content:center;
+  }
+  .rec-btn.recording{background:var(--coral); color:#fff; animation:pulse 1.2s infinite;}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(200,95,74,.5);} 70%{box-shadow:0 0 0 10px rgba(200,95,74,0);} 100%{box-shadow:0 0 0 0 rgba(200,95,74,0);}}
+
+  .empty-state{text-align:center; padding:30px 10px; color:var(--ink-soft);}
+  .empty-state .ic{font-size:32px; margin-bottom:6px;}
+
+  .toast{
+    position:fixed; bottom:80px; left:50%; transform:translateX(-50%); background:var(--ink); color:#fff;
+    padding:9px 16px; border-radius:100px; font-size:12.5px; font-weight:600; z-index:100; opacity:0; pointer-events:none;
+    transition:opacity .2s, transform .2s;
+  }
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(-4px);}
+
+  .setup-overlay{
+    position:fixed; inset:0; background:linear-gradient(160deg,var(--teal-900),var(--teal-700)); z-index:200;
+    display:flex; align-items:center; justify-content:center; padding:20px;
+  }
+  .setup-card{background:#fff; border-radius:18px; padding:26px 22px; max-width:400px; width:100%;}
+  .setup-card h1{font-size:19px; margin:0 0 4px;}
+  .setup-card p.lead{font-size:13px; color:var(--ink-soft); margin:0 0 18px;}
+  .role-opt{
+    display:flex; align-items:center; gap:10px; border:1.5px solid var(--line); border-radius:12px; padding:10px 12px; margin-bottom:8px; cursor:pointer;
+  }
+  .role-opt.selected{border-color:var(--teal-700); background:var(--teal-100);}
+  .role-opt input{margin:0;}
+  .role-opt .r-ic{font-size:18px;}
+  .role-opt .r-txt b{display:block; font-size:13.5px;} .role-opt .r-txt span{font-size:11.5px; color:var(--ink-soft);}
+
+  .lang-note{font-size:11px; color:var(--ink-soft); margin-top:14px; line-height:1.5;}
+
+  .search-wrap{position:relative; margin-bottom:10px;}
+
+  .placeholder-fill{color:var(--ink-soft); font-style:italic; font-size:12.5px;}
+
+  ::-webkit-scrollbar{width:0; height:0;}
+  @media print{
+    header.appbar, nav.tabbar, .no-print{display:none !important;}
+    body{padding:0; background:#fff;}
+    .tabpanel{display:block !important;}
+  }
+</style>
+</head>
+<body>
+
+<div id="setupOverlay" class="setup-overlay" style="display:none;">
+  <div class="setup-card">
+    <h1>MNZ Training Manager <span style="font-weight:400;">/ 研修管理</span></h1>
+    <p class="lead" id="loginStep1Lead">Who's using this? Select your name to continue.</p>
+
+    <div id="loginStep1">
+      <label class="field-label" style="margin-top:0;">Your name / お名前</label>
+      <select id="loginNameSelect"><option value="">— select —</option></select>
+      <button class="btn block" style="margin-top:14px;" onclick="app.chooseLoginName()">Continue / 次へ</button>
+    </div>
+
+    <div id="loginStep2" style="display:none;">
+      <p class="subtle" id="loginStep2Name" style="margin-top:0;"></p>
+      <div id="loginClaimBlock" style="display:none;">
+        <p class="subtle">First time here — create a PIN (4+ digits) you'll use to log in on any device.</p>
+        <label class="field-label" style="margin-top:0;">Create PIN / PINを作成</label>
+        <input type="password" inputmode="numeric" id="loginPinNew" placeholder="••••">
+        <label class="field-label">Confirm PIN / PIN確認</label>
+        <input type="password" inputmode="numeric" id="loginPinNewConfirm" placeholder="••••">
+        <button class="btn block" style="margin-top:14px;" onclick="app.claimPin()">Create PIN & continue</button>
+      </div>
+      <div id="loginEnterBlock" style="display:none;">
+        <label class="field-label" style="margin-top:0;">Enter PIN / PINを入力</label>
+        <input type="password" inputmode="numeric" id="loginPinEnter" placeholder="••••">
+        <button class="btn block" style="margin-top:14px;" onclick="app.submitLogin()">Log in / ログイン</button>
+      </div>
+      <button class="btn ghost block" style="margin-top:8px;" onclick="app.backToNameSelect()">← Back / 戻る</button>
+      <p id="loginError" class="subtle" style="color:var(--coral); display:none; margin-top:8px;"></p>
+    </div>
+
+    <p class="lang-note">Your name and role are pre-set by your IT manager. Not on the list, or need access added? Contact Wade.</p>
+  </div>
+</div>
+
+<header class="appbar">
+  <div class="appbar-row">
+    <div class="appbar-title" id="appTitle">MNZ Training Manager<small>研修スケジュール管理</small></div>
+    <div class="appbar-actions">
+      <button class="pill-btn" onclick="app.toggleLang()" id="langBtn">日本語</button>
+      <button class="profile-chip" onclick="app.openProfile()" id="profileChip">
+        <span class="avatar" id="profileAvatar">?</span>
+        <span id="profileName">Set up</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <!-- DASHBOARD -->
+  <section id="tab-dashboard" class="tabpanel active"></section>
+  <!-- CALENDAR -->
+  <section id="tab-calendar" class="tabpanel"></section>
+  <!-- LIST -->
+  <section id="tab-list" class="tabpanel"></section>
+  <!-- REPORTS -->
+  <section id="tab-reports" class="tabpanel"></section>
+</main>
+
+<nav class="tabbar no-print">
+  <button class="tab-btn active" data-tab="dashboard" onclick="app.switchTab('dashboard')"><span class="ic">🏠</span><span data-i18n="tab.dashboard">Dashboard</span></button>
+  <button class="tab-btn" data-tab="calendar" onclick="app.switchTab('calendar')"><span class="ic">📅</span><span data-i18n="tab.calendar">Calendar</span></button>
+  <button class="tab-btn" data-tab="list" onclick="app.switchTab('list')"><span class="ic">📋</span><span data-i18n="tab.list">All Days</span></button>
+  <button class="tab-btn" data-tab="reports" onclick="app.switchTab('reports')"><span class="ic">📊</span><span data-i18n="tab.reports">Reports</span></button>
+</nav>
+
+<div class="overlay" id="dayOverlay">
+  <div class="sheet" id="daySheet"></div>
+</div>
+
+<div class="overlay" id="profileOverlay">
+  <div class="sheet" id="profileSheet"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const OWNER_LABELS_JA_TO_EN = {}; // filled at init from seed
+
+const STATUS_LIST = ["planned","completed","not_done","postponed","changed","cancelled","reserve","to_review","confirmed"];
+const STATUS_LABEL = {
+  planned:{en:"Planned",ja:"予定"}, completed:{en:"Completed",ja:"完了"}, not_done:{en:"Not done",ja:"未実施"},
+  postponed:{en:"Postponed",ja:"延期"}, changed:{en:"Changed",ja:"変更"}, cancelled:{en:"Cancelled",ja:"中止"},
+  reserve:{en:"Reserve",ja:"予備"}, to_review:{en:"To review",ja:"要確認"}, confirmed:{en:"Confirmed",ja:"承認済"},
+  holiday:{en:"Holiday",ja:"祝日"}
+};
+const I18N = {
+  "tab.dashboard":{en:"Dashboard",ja:"ホーム"}, "tab.calendar":{en:"Calendar",ja:"カレンダー"},
+  "tab.list":{en:"All Days",ja:"一覧"}, "tab.reports":{en:"Reports",ja:"レポート"},
+  "dash.today":{en:"Today",ja:"本日"}, "dash.noToday":{en:"No training scheduled today",ja:"本日の研修予定なし"},
+  "dash.progress":{en:"Programme progress",ja:"研修進捗"}, "dash.completed":{en:"Completed",ja:"完了"},
+  "dash.remaining":{en:"Remaining",ja:"残り"}, "dash.days":{en:"days",ja:"日"},
+  "dash.thisWeek":{en:"This week",ja:"今週の予定"}, "dash.yourTurn":{en:"Your upcoming sessions",ja:"あなたの担当予定"},
+  "dash.viewDetails":{en:"View details",ja:"詳細を見る"}, "dash.markComplete":{en:"Mark as completed",ja:"完了にする"},
+  "search.placeholder":{en:"Search schedule or owner...",ja:"予定・担当者を検索..."},
+  "filter.allOwners":{en:"All owners",ja:"全担当者"}, "filter.allStatus":{en:"All statuses",ja:"全ステータス"},
+  "filter.allMonths":{en:"All months",ja:"全期間"},
+  "sched.title":{en:"Schedule",ja:"予定"}, "sched.owner":{en:"Owner",ja:"担当"},
+  "sched.status":{en:"Status",ja:"ステータス"}, "sched.changeSchedule":{en:"Change schedule",ja:"予定を変更"},
+  "sched.reason":{en:"Reason for change",ja:"変更理由"}, "sched.saveChange":{en:"Save change",ja:"変更を保存"},
+  "sched.newDate":{en:"New date",ja:"新しい日付"},
+  "record.title":{en:"Trainee record",ja:"研修生の記録"}, "record.completed":{en:"I completed this session",ja:"このセッションを完了しました"},
+  "record.content":{en:"What was covered",ja:"実施内容"}, "record.learnings":{en:"Key learnings",ja:"学んだこと"},
+  "record.observations":{en:"Observations",ja:"気づき・所感"}, "record.questions":{en:"Questions",ja:"質問"},
+  "record.issues":{en:"Issues / concerns",ja:"課題・懸念点"}, "record.nextActions":{en:"Next actions",ja:"次のアクション"},
+  "record.memo":{en:"Other notes",ja:"その他メモ"}, "record.save":{en:"Save record",ja:"記録を保存"},
+  "review.title":{en:"Manager review",ja:"マネージャーレビュー"}, "review.comment":{en:"Manager comment",ja:"マネージャーコメント"},
+  "review.confirm":{en:"Confirm this session",ja:"この研修を承認する"}, "review.save":{en:"Save review",ja:"レビューを保存"},
+  "voice.record":{en:"Record voice comment",ja:"音声コメントを録音"}, "voice.stop":{en:"Stop recording",ja:"録音を停止"},
+  "voice.none":{en:"No voice comments yet",ja:"音声コメントはまだありません"},
+  "history.title":{en:"Change history",ja:"変更履歴"}, "history.none":{en:"No changes recorded",ja:"変更履歴はありません"},
+  "reports.title":{en:"Monthly report",ja:"月次レポート"}, "reports.export":{en:"Export CSV",ja:"CSVを出力"},
+  "reports.print":{en:"Print / Save PDF",ja:"印刷 / PDF保存"},
+  "profile.title":{en:"Your profile",ja:"プロフィール"}, "profile.name":{en:"Name",ja:"名前"},
+  "profile.role":{en:"Role",ja:"役割"}, "profile.save":{en:"Save",ja:"保存"},
+  "close":{en:"Close",ja:"閉じる"}, "cancel":{en:"Cancel",ja:"キャンセル"},
+  "toast.saved":{en:"Saved",ja:"保存しました"},
+};
+
+const TEAMS = [
+  {key:"it", en:"IT", ja:"IT", match:["IT Mgr"]},
+  {key:"finance", en:"Finance", ja:"財務", match:["Finance Mgr"]},
+  {key:"hr", en:"HR & General Affairs", ja:"人事・総務", match:["HR/GA Mgr"]},
+  {key:"cs", en:"Customer Service", ja:"カスタマーサービス", match:["CS Mgr"]},
+  {key:"marketing", en:"Marketing", ja:"マーケティング", match:["Marketing Mgr"]},
+  {key:"product", en:"Product", ja:"プロダクト", match:["Product Mgr"]},
+  {key:"purchasing", en:"Purchasing", ja:"購買", match:["Purchasing Manager"]},
+  {key:"sales", en:"Sales", ja:"営業", match:["Sales Mgr"]},
+  {key:"service", en:"Service (FSC)", ja:"サービス(FSC)", match:["Service Mgr"]},
+  {key:"warehouse", en:"Warehouse", ja:"倉庫", match:["Warehouse Mgr"]},
+  {key:"md", en:"Hiroshi / MD", ja:"神谷/MD", match:["Hiroshi"]}
+];
+function teamMatches(team, ownerEn){
+  const t = TEAMS.find(x=>x.key===team);
+  if(!t) return false;
+  return t.match.some(m => (ownerEn||"").includes(m));
+}
+
+// ---------------- Supabase client ----------------
+const SUPABASE_URL = "https://qismhbcgpdhflswjyngp.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_J2XWYCA4JAvGUfdH5A3Uyw_jETrIPxL";
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// ---------------- app ----------------
+const app = {
+  lang: localStorage_safe_get("mnz_lang") || "en",
+  profile: null,
+  schedule: [],       // loaded fresh from Supabase on login
+  activity: {},        // shared, map id -> {record, review, voiceNotes[], history[]}
+  currentTab: "dashboard",
+  calMonthIdx: 0,       // index into PROGRAMME_MONTHS
+  mediaRecorder: null, recChunks: [], recTimer: null, recSeconds:0, recTargetId:null,
+
+  async init(){
+    this.loadProfile();
+    if(!this.profile){
+      await this.showSetup();
+    } else {
+      await this.loadData();
+      this.render();
+    }
+  },
+
+  // ---------- auth (session stored per-device only; roles/teams live in the database) ----------
+  loadProfile(){
+    const raw = localStorage_safe_get("mnz_session");
+    if(raw){ try{ this.profile = JSON.parse(raw); }catch(e){ this.profile = null; } }
+  },
+  saveSession(p){
+    this.profile = p;
+    localStorage_safe_set("mnz_session", JSON.stringify(p));
+  },
+  logout(){
+    this.profile = null;
+    try{ localStorage.removeItem("mnz_session"); }catch(e){}
+    this.closeOverlay("profileOverlay");
+    this.showSetup();
+  },
+
+  async showSetup(){
+    document.getElementById("setupOverlay").style.display = "flex";
+    document.getElementById("loginStep1").style.display = "block";
+    document.getElementById("loginStep2").style.display = "none";
+    const sel = document.getElementById("loginNameSelect");
+    sel.innerHTML = `<option value="">— select —</option>`;
+    try{
+      const { data, error } = await sb.rpc("list_roster_names");
+      if(error) throw error;
+      (data||[]).forEach(p => {
+        sel.innerHTML += `<option value="${escapeHtml(p.name)}">${escapeHtml(p.name)}</option>`;
+      });
+    }catch(e){
+      this.toast(this.t2("Couldn't load the name list — check your connection","名前一覧を取得できませんでした"));
+    }
+  },
+  backToNameSelect(){
+    document.getElementById("loginStep1").style.display = "block";
+    document.getElementById("loginStep2").style.display = "none";
+    document.getElementById("loginError").style.display = "none";
+  },
+  async chooseLoginName(){
+    const name = document.getElementById("loginNameSelect").value;
+    if(!name){ this.toast(this.t2("Please select your name","お名前を選択してください")); return; }
+    this._loginName = name;
+    const { data, error } = await sb.rpc("person_status", { p_name: name });
+    if(error || !data || !data[0] || !data[0].exists_flag){
+      this.toast(this.t2("Something went wrong — try again","エラーが発生しました")); return;
+    }
+    const status = data[0];
+    document.getElementById("loginStep1").style.display = "none";
+    document.getElementById("loginStep2").style.display = "block";
+    document.getElementById("loginStep2Name").textContent = name;
+    document.getElementById("loginError").style.display = "none";
+    document.getElementById("loginClaimBlock").style.display = status.claimed ? "none" : "block";
+    document.getElementById("loginEnterBlock").style.display = status.claimed ? "block" : "none";
+  },
+  async claimPin(){
+    const pin = document.getElementById("loginPinNew").value;
+    const confirm = document.getElementById("loginPinNewConfirm").value;
+    const errEl = document.getElementById("loginError");
+    if(pin.length < 4){ errEl.textContent = this.t2("PIN must be at least 4 digits","PINは4桁以上にしてください"); errEl.style.display="block"; return; }
+    if(pin !== confirm){ errEl.textContent = this.t2("PINs don't match","PINが一致しません"); errEl.style.display="block"; return; }
+    const { data, error } = await sb.rpc("claim_person", { p_name: this._loginName, p_pin: pin });
+    if(error || !data || !data[0]){
+      errEl.textContent = this.t2("Couldn't set up your PIN — try again or ask Wade","PINの設定に失敗しました"); errEl.style.display="block"; return;
+    }
+    await this.finishLogin(data[0]);
+  },
+  async submitLogin(){
+    const pin = document.getElementById("loginPinEnter").value;
+    const errEl = document.getElementById("loginError");
+    const { data, error } = await sb.rpc("login_person", { p_name: this._loginName, p_pin: pin });
+    if(error || !data || !data[0]){
+      errEl.textContent = this.t2("Incorrect PIN","PINが正しくありません"); errEl.style.display="block"; return;
+    }
+    await this.finishLogin(data[0]);
+  },
+  async finishLogin(person){
+    this.saveSession({ id: person.id, name: person.name, role: person.role, team: person.team_key });
+    document.getElementById("setupOverlay").style.display = "none";
+    await this.loadData();
+    this.render();
+  },
+
+  openProfile(){
+    const p = this.profile || {name:"", role:"viewer"};
+    const teamDef = TEAMS.find(t=>t.key===p.team);
+    const sheet = document.getElementById("profileSheet");
+    sheet.innerHTML = `
+      <div class="sheet-head">
+        <div><b style="font-size:16px;">${this.t("profile.title")}</b></div>
+        <button class="sheet-close" onclick="app.closeOverlay('profileOverlay')">✕</button>
+      </div>
+      <p class="subtle" style="margin-top:4px;">${this.t2("Name","名前")}: <b style="color:var(--ink);">${escapeHtml(p.name)}</b></p>
+      <p class="subtle">${this.t2("Role","役割")}: <b style="color:var(--ink);">${escapeHtml(p.role)}</b>${teamDef ? " · "+this.t2(teamDef.en, teamDef.ja) : ""}</p>
+      <p class="lang-note">${this.t2("Role and team are set by your IT manager. Ask Wade if this needs to change.","役割・チームはITマネージャーが設定します。変更が必要な場合はWadeに連絡してください。")}</p>
+      <button class="btn ghost block" style="margin-top:14px;" onclick="app.logout()">${this.t2("Log out","ログアウト")}</button>
+    `;
+    document.getElementById("profileOverlay").classList.add("open");
+  },
+  // ---------- shared data (Supabase) ----------
+  async loadData(){
+    const { data: sched, error: schedErr } = await sb.from("schedule").select("*").order("date");
+    if(schedErr){ this.toast(this.t2("Couldn't load the schedule","スケジュールを取得できませんでした")); this.schedule = []; return; }
+    this.schedule = (sched||[]).map(r => ({
+      id: r.id, date: r.date, originalDate: r.original_date, dayOfWeek: r.day_of_week,
+      titleEn: r.title_en, titleJa: r.title_ja, ownerEn: r.owner_en, ownerJa: r.owner_ja,
+      category: r.category, status: r.status
+    }));
+    const ids = this.schedule.map(s=>s.id);
+    this.activity = {};
+    this.schedule.forEach(s => { this.activity[s.id] = {record:{}, review:{}, voiceNotes:[], history:[]}; });
+    if(ids.length === 0) return;
+    const [{data:recs}, {data:revs}, {data:voices}, {data:hist}] = await Promise.all([
+      sb.from("records").select("*").in("schedule_id", ids),
+      sb.from("reviews").select("*").in("schedule_id", ids),
+      sb.from("voice_notes").select("*").in("schedule_id", ids).order("created_at"),
+      sb.from("schedule_history").select("*").in("schedule_id", ids).order("at")
+    ]);
+    (recs||[]).forEach(r => {
+      this.activity[r.schedule_id].record = {
+        completed: r.completed, actualContent: r.actual_content, learnings: r.learnings,
+        observations: r.observations, questions: r.questions, issues: r.issues,
+        nextActions: r.next_actions, memo: r.memo, updatedAt: r.updated_at, updatedBy: r.updated_by
+      };
+    });
+    (revs||[]).forEach(r => {
+      this.activity[r.schedule_id].review = {
+        managerName: r.manager_name, managerComment: r.manager_comment,
+        confirmed: r.confirmed, confirmedAt: r.confirmed_at
+      };
+    });
+    (voices||[]).forEach(v => {
+      const { data: pub } = sb.storage.from("voice-notes").getPublicUrl(v.storage_path);
+      this.activity[v.schedule_id].voiceNotes.push({ id: v.id, by: v.by_name, at: v.created_at, audioBase64: pub.publicUrl });
+    });
+    (hist||[]).forEach(h => {
+      this.activity[h.schedule_id].history.push({
+        at: h.at, by: h.by_name, field: h.field, oldValue: h.old_value, newValue: h.new_value, reason: h.reason
+      });
+    });
+  },
+  async persistSchedule(){ /* no-op: schedule rows are written directly by saveScheduleChange */ },
+  async persistActivity(){ /* no-op: records/reviews/voice_notes are written directly by their save functions */ },
+  getActivity(id){
+    if(!this.activity[id]) this.activity[id] = {record:{}, review:{}, voiceNotes:[], history:[]};
+    if(!this.activity[id].voiceNotes) this.activity[id].voiceNotes = [];
+    if(!this.activity[id].history) this.activity[id].history = [];
+    if(!this.activity[id].record) this.activity[id].record = {};
+    if(!this.activity[id].review) this.activity[id].review = {};
+    return this.activity[id];
+  },
+
+  // ---------- i18n ----------
+  t(key){ const e = I18N[key]; if(!e) return key; return this.lang==="ja" ? e.ja : e.en; },
+  t2(en, ja){ return this.lang === "ja" ? ja : en; },
+  toggleLang(){
+    this.lang = this.lang === "en" ? "ja" : "en";
+    localStorage_safe_set("mnz_lang", this.lang);
+    document.getElementById("langBtn").textContent = this.lang === "en" ? "日本語" : "English";
+    document.getElementById("appTitle").innerHTML = this.lang === "en"
+      ? 'MNZ Training Manager<small>研修スケジュール管理</small>'
+      : 'MNZ 研修管理<small>Training Schedule Manager</small>';
+    this.render();
+  },
+
+  toast(msg){
+    const el = document.getElementById("toast");
+    el.textContent = msg; el.classList.add("show");
+    clearTimeout(this._toastTimer);
+    this._toastTimer = setTimeout(()=> el.classList.remove("show"), 2200);
+  },
+  closeOverlay(id){ document.getElementById(id).classList.remove("open"); },
+
+  switchTab(tab){
+    this.currentTab = tab;
+    document.querySelectorAll(".tab-btn").forEach(b => b.classList.toggle("active", b.dataset.tab === tab));
+    document.querySelectorAll(".tabpanel").forEach(p => p.classList.remove("active"));
+    document.getElementById("tab-"+tab).classList.add("active");
+    this.renderTab(tab);
+  },
+
+  render(){
+    document.getElementById("langBtn").textContent = this.lang === "en" ? "日本語" : "English";
+    if(this.profile){
+      document.getElementById("profileName").textContent = this.profile.name;
+      document.getElementById("profileAvatar").textContent = (this.profile.name||"?").trim().charAt(0).toUpperCase();
+    } else {
+      document.getElementById("profileName").textContent = this.t2("Set up","設定");
+    }
+    this.renderTab(this.currentTab);
+  },
+  renderTab(tab){
+    if(tab === "dashboard") this.renderDashboard();
+    if(tab === "calendar") this.renderCalendar();
+    if(tab === "list") this.renderList();
+    if(tab === "reports") this.renderReports();
+  },
+
+  todayISO(){
+    const d = new Date();
+    return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+  },
+  fmtDate(iso, opts){
+    const d = new Date(iso+"T00:00:00");
+    const monthsEn = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    if(this.lang === "ja") return `${d.getMonth()+1}月${d.getDate()}日`;
+    return `${monthsEn[d.getMonth()]} ${d.getDate()}`;
+  },
+  dowShort(iso){
+    const d = new Date(iso+"T00:00:00");
+    const en=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"]; const ja=["日","月","火","水","木","金","土"];
+    return this.lang==="ja" ? ja[d.getDay()] : en[d.getDay()];
+  },
+  isWeekend(iso){ const d = new Date(iso+"T00:00:00").getDay(); return d===0 || d===6; },
+
+  statusOf(entry){
+    return entry.status || "planned";
+  },
+  entryTitle(e){ return this.lang === "ja" ? (e.titleJa || e.titleEn) : (e.titleEn || e.titleJa); },
+  entryOwner(e){ return this.lang === "ja" ? (e.ownerJa || e.ownerEn) : (e.ownerEn || e.ownerJa); },
+
+  // ================= DASHBOARD =================
+  renderDashboard(){
+    const el = document.getElementById("tab-dashboard");
+    const todayISO = this.todayISO();
+    const todayEntry = this.schedule.find(e => e.date === todayISO);
+    const completedCount = this.schedule.filter(e => e.category==="training" && this.statusOf(e)==="completed").length;
+    const trainingTotal = this.schedule.filter(e => e.category==="training").length;
+    const remaining = trainingTotal - completedCount;
+    const pct = trainingTotal ? Math.round((completedCount/trainingTotal)*100) : 0;
+
+    let heroHtml;
+    if(todayEntry){
+      const act = this.getActivity(todayEntry.id);
+      const st = this.statusOf(todayEntry);
+      heroHtml = `
+        <div class="card hero">
+          <div class="hero-date">${this.t("dash.today")} · ${this.fmtDate(todayEntry.date)} (${this.dowShort(todayEntry.date)})</div>
+          <div class="hero-title">${escapeHtml(this.entryTitle(todayEntry))}</div>
+          <span class="badge ${st}">${this.t2(STATUS_LABEL[st].en, STATUS_LABEL[st].ja)}</span>
+          <div class="hero-owner">👤 ${escapeHtml(this.entryOwner(todayEntry))}</div>
+          <div class="btn-row">
+            <button class="btn" onclick="app.openDay('${todayEntry.id}')">${this.t("dash.viewDetails")}</button>
+            ${st!=="completed" && this.profile && this.profile.role==="intern" ? `<button class="btn secondary" onclick="app.quickComplete('${todayEntry.id}')">${this.t("dash.markComplete")}</button>` : ""}
+          </div>
+        </div>`;
+    } else {
+      heroHtml = `<div class="card hero"><div class="hero-date">${this.t("dash.today")} · ${this.fmtDate(todayISO)}</div><p class="subtle" style="margin:6px 0 0;">${this.t("dash.noToday")}</p></div>`;
+    }
+
+    const ring = `
+      <div class="card">
+        <h2>${this.t("dash.progress")}</h2>
+        <div class="ring-wrap">
+          ${svgRing(pct)}
+          <div class="ring-label">
+            <b>${completedCount} / ${trainingTotal}</b>
+            <div>${this.t2("training days completed","研修日が完了")}</div>
+          </div>
+        </div>
+        <div class="stat-row" style="margin-top:12px;">
+          <div class="stat"><b>${completedCount}</b><span>${this.t("dash.completed")}</span></div>
+          <div class="stat"><b>${remaining}</b><span>${this.t("dash.remaining")}</span></div>
+          <div class="stat"><b>${pct}%</b><span>${this.t2("Progress","進捗")}</span></div>
+        </div>
+      </div>`;
+
+    // this week
+    const now = new Date(todayISO+"T00:00:00");
+    const dow = now.getDay();
+    const monday = new Date(now); monday.setDate(now.getDate() - ((dow+6)%7));
+    const weekDates = [...Array(7)].map((_,i)=>{ const d=new Date(monday); d.setDate(monday.getDate()+i); return d.toISOString().slice(0,10); });
+    const weekEntries = this.schedule.filter(e => weekDates.includes(e.date));
+    let weekHtml = `<div class="card"><h2>${this.t("dash.thisWeek")}</h2>`;
+    if(weekEntries.length===0){
+      weekHtml += `<p class="subtle">${this.t2("No entries this week","今週の予定はありません")}</p>`;
+    } else {
+      weekHtml += weekEntries.map(e => this.listRowHtml(e)).join("");
+    }
+    weekHtml += `</div>`;
+
+    // your upcoming (manager) — matched by selected team (or, for legacy profiles without a team, a loose name match)
+    let upcomingHtml = "", teamCardHtml = "", reminderHtml = "";
+    if(this.profile && this.profile.role === "manager"){
+      const teamDays = this.schedule.filter(e => e.category==="training" && this.ownerMatchesProfile(e));
+      const upcoming = teamDays.filter(e => e.date >= todayISO).slice(0,5);
+      if(this.profile.team){
+        const teamDef = TEAMS.find(t=>t.key===this.profile.team);
+        const teamCompleted = teamDays.filter(e => ["completed","confirmed"].includes(this.statusOf(e))).length;
+        teamCardHtml = `
+          <div class="card">
+            <h2>${this.t2("Your team","担当チーム")}: ${teamDef ? this.t2(teamDef.en, teamDef.ja) : ""}</h2>
+            <div class="stat-row">
+              <div class="stat"><b>${teamCompleted}</b><span>${this.t("dash.completed")}</span></div>
+              <div class="stat"><b>${teamDays.length}</b><span>${this.t2("Total days","合計日数")}</span></div>
+              <div class="stat"><b>${teamDays.length ? Math.round((teamCompleted/teamDays.length)*100) : 0}%</b><span>${this.t2("Progress","進捗")}</span></div>
+            </div>
+          </div>`;
+        const soon = upcoming.filter(e => {
+          const days = (new Date(e.date+"T00:00:00") - new Date(todayISO+"T00:00:00")) / 86400000;
+          return days >= 0 && days <= 7;
+        });
+        if(soon.length){
+          reminderHtml = `<div class="card" style="background:var(--amber-100); border-color:var(--amber);">
+            <b style="font-size:13px;">🔔 ${this.t2(`You have ${soon.length} session(s) coming up in the next 7 days`, `今後7日以内に${soon.length}件の担当予定があります`)}</b>
+          </div>`;
+        }
+      }
+      if(upcoming.length){
+        upcomingHtml = `<div class="card"><h2>${this.t("dash.yourTurn")}</h2>${upcoming.map(e=>this.listRowHtml(e)).join("")}</div>`;
+      }
+    }
+
+    el.innerHTML = heroHtml + reminderHtml + ring + teamCardHtml + upcomingHtml + weekHtml;
+  },
+
+  ownerMatchesProfile(e){
+    if(!this.profile) return false;
+    if(this.profile.team) return teamMatches(this.profile.team, e.ownerEn);
+    if(!this.profile.name) return false;
+    const first = this.profile.name.toLowerCase().split(" ")[0];
+    const owners = (e.ownerEn+" "+e.ownerJa).toLowerCase();
+    return owners.includes(first) && first.length>1;
+  },
+
+  listRowHtml(e){
+    const d = new Date(e.date+"T00:00:00");
+    const st = this.statusOf(e);
+    const badge = e.category==="holiday" ? `<span class="badge holiday">${this.t2("Holiday","祝日")}</span>` : `<span class="badge ${st}">${this.t2(STATUS_LABEL[st].en, STATUS_LABEL[st].ja)}</span>`;
+    return `
+      <div class="list-row" onclick="app.openDay('${e.id}')">
+        <div class="list-date"><b>${d.getDate()}</b><span>${this.dowShort(e.date)}</span></div>
+        <div class="list-main">
+          <div class="t">${escapeHtml(this.entryTitle(e))}</div>
+          <div class="o">${escapeHtml(this.entryOwner(e))}</div>
+        </div>
+        ${badge}
+      </div>`;
+  },
+
+  async quickComplete(id){
+    const act = this.getActivity(id);
+    const now = new Date().toISOString();
+    const by = this.profile ? this.profile.name : "";
+    act.record.completed = true;
+    act.record.updatedAt = now;
+    act.record.updatedBy = by;
+    await sb.from("records").upsert({
+      schedule_id: id, completed: true, actual_content: act.record.actualContent||null,
+      learnings: act.record.learnings||null, observations: act.record.observations||null,
+      questions: act.record.questions||null, issues: act.record.issues||null,
+      next_actions: act.record.nextActions||null, memo: act.record.memo||null,
+      updated_at: now, updated_by: by
+    }, {onConflict:"schedule_id"});
+    const entry = this.schedule.find(x=>x.id===id);
+    if(entry && entry.status !== "confirmed"){
+      entry.status = "completed";
+      await sb.from("schedule").update({status:"completed"}).eq("id", id);
+    }
+    this.toast(this.t("toast.saved"));
+    this.render();
+  },
+
+  // ================= CALENDAR =================
+  programmeMonths(){
+    // list of {year, month(0-based)} spanning schedule
+    const set = new Set();
+    this.schedule.forEach(e => { const d = new Date(e.date+"T00:00:00"); set.add(d.getFullYear()+"-"+d.getMonth()); });
+    return Array.from(set).map(s=>{ const [y,m]=s.split("-").map(Number); return {y,m}; }).sort((a,b)=> a.y-b.y || a.m-b.m);
+  },
+  renderCalendar(){
+    const el = document.getElementById("tab-calendar");
+    const months = this.programmeMonths();
+    if(this.calMonthIdx < 0) this.calMonthIdx = 0;
+    if(this.calMonthIdx >= months.length) this.calMonthIdx = months.length-1;
+    const {y,m} = months[this.calMonthIdx];
+    const monthNamesEn = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+    const first = new Date(y,m,1);
+    const startOffset = (first.getDay()+6)%7; // Monday=0
+    const daysInMonth = new Date(y,m+1,0).getDate();
+    const todayISO = this.todayISO();
+
+    let cells = "";
+    const dowLabels = this.lang==="ja" ? ["月","火","水","木","金","土","日"] : ["Mo","Tu","We","Th","Fr","Sa","Su"];
+    let dowHtml = dowLabels.map(d=>`<div class="cal-dow">${d}</div>`).join("");
+
+    for(let i=0;i<startOffset;i++) cells += `<div class="cal-cell empty"></div>`;
+    for(let day=1; day<=daysInMonth; day++){
+      const iso = `${y}-${String(m+1).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
+      const entry = this.schedule.find(e=>e.date===iso);
+      const weekend = this.isWeekend(iso);
+      let cls = "cal-cell";
+      if(weekend) cls += " weekend";
+      if(entry && entry.category==="holiday") cls += " holiday";
+      if(iso === todayISO) cls += " today";
+      const st = entry ? this.statusOf(entry) : null;
+      const dot = entry && entry.category==="training" ? `<span class="cal-dot ${st}"></span>` : "";
+      cells += `<div class="${cls}" onclick="${entry ? `app.openDay('${entry.id}')` : ""}"><b>${day}</b>${dot}</div>`;
+    }
+
+    el.innerHTML = `
+      <div class="card">
+        <div class="cal-head">
+          <b>${this.lang==="ja" ? (y+"年 "+(m+1)+"月") : (monthNamesEn[m]+" "+y)}</b>
+          <div class="cal-nav">
+            <button onclick="app.calNav(-1)" ${this.calMonthIdx===0?"disabled":""}>‹</button>
+            <button onclick="app.calNav(1)" ${this.calMonthIdx===months.length-1?"disabled":""}>›</button>
+          </div>
+        </div>
+        <div class="cal-grid">${dowHtml}${cells}</div>
+        <div class="legend">
+          <span><i style="background:#3b587a"></i>${this.t2("Planned","予定")}</span>
+          <span><i style="background:var(--sage)"></i>${this.t2("Completed","完了")}</span>
+          <span><i style="background:var(--amber)"></i>${this.t2("Changed/Postponed","変更・延期")}</span>
+          <span><i style="background:var(--coral)"></i>${this.t2("To review/Not done","要確認・未実施")}</span>
+          <span style="background:var(--amber-100); padding:1px 6px; border-radius:4px;">${this.t2("Holiday","祝日")}</span>
+          <span style="background:var(--sky-100); padding:1px 6px; border-radius:4px;">${this.t2("Weekend","週末")}</span>
+        </div>
+      </div>`;
+  },
+  calNav(dir){
+    const months = this.programmeMonths();
+    this.calMonthIdx = Math.max(0, Math.min(months.length-1, this.calMonthIdx+dir));
+    this.renderCalendar();
+  },
+
+  // ================= LIST =================
+  listFilters:{q:"", owner:"", status:"", month:""},
+  renderList(){
+    const el = document.getElementById("tab-list");
+    const owners = Array.from(new Set(this.schedule.map(e=>e.ownerEn).filter(Boolean))).sort();
+    const months = this.programmeMonths();
+    const monthNamesEn = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+    const f = this.listFilters;
+    let items = this.schedule.filter(e=>{
+      if(f.q){
+        const hay = (e.titleEn+" "+e.titleJa+" "+e.ownerEn+" "+e.ownerJa).toLowerCase();
+        if(!hay.includes(f.q.toLowerCase())) return false;
+      }
+      if(f.owner && e.ownerEn !== f.owner) return false;
+      if(f.status && this.statusOf(e) !== f.status) return false;
+      if(f.month){
+        const d = new Date(e.date+"T00:00:00");
+        if(`${d.getFullYear()}-${d.getMonth()}` !== f.month) return false;
+      }
+      return true;
+    });
+
+    el.innerHTML = `
+      <div class="card">
+        <div class="search-wrap"><input type="search" id="listSearch" placeholder="${this.t('search.placeholder')}" value="${escapeHtml(f.q)}" oninput="app.onListSearch(this.value)"></div>
+        <div class="filter-row">
+          <select onchange="app.onListFilter('owner', this.value)">
+            <option value="">${this.t("filter.allOwners")}</option>
+            ${owners.map(o=>`<option value="${escapeHtml(o)}" ${f.owner===o?"selected":""}>${escapeHtml(o)}</option>`).join("")}
+          </select>
+          <select onchange="app.onListFilter('status', this.value)">
+            <option value="">${this.t("filter.allStatus")}</option>
+            ${STATUS_LIST.map(s=>`<option value="${s}" ${f.status===s?"selected":""}>${this.t2(STATUS_LABEL[s].en,STATUS_LABEL[s].ja)}</option>`).join("")}
+          </select>
+          <select onchange="app.onListFilter('month', this.value)">
+            <option value="">${this.t("filter.allMonths")}</option>
+            ${months.map(mo=>`<option value="${mo.y}-${mo.m}" ${f.month===`${mo.y}-${mo.m}`?"selected":""}>${monthNamesEn[mo.m]} ${mo.y}</option>`).join("")}
+          </select>
+        </div>
+        <div>${items.length ? items.map(e=>this.listRowHtml(e)).join("") : `<div class="empty-state"><div class="ic">🔍</div>${this.t2("No matching days","一致する日がありません")}</div>`}</div>
+      </div>`;
+  },
+  onListSearch(v){ this.listFilters.q = v; this.renderList(); },
+  onListFilter(key,val){ this.listFilters[key] = val; this.renderList(); },
+
+  // ================= REPORTS =================
+  reportMonth: null,
+  renderReports(){
+    const el = document.getElementById("tab-reports");
+    const months = this.programmeMonths();
+    const monthNamesEn = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    if(this.reportMonth === null) this.reportMonth = `${months[0].y}-${months[0].m}`;
+    const [ry,rm] = this.reportMonth.split("-").map(Number);
+    const items = this.schedule.filter(e=>{ const d=new Date(e.date+"T00:00:00"); return d.getFullYear()===ry && d.getMonth()===rm; });
+    const trainingItems = items.filter(e=>e.category==="training");
+    const completed = trainingItems.filter(e=>this.statusOf(e)==="completed" || this.statusOf(e)==="confirmed");
+
+    el.innerHTML = `
+      <div class="card">
+        <h2>${this.t("reports.title")}</h2>
+        <select onchange="app.onReportMonth(this.value)">
+          ${months.map(mo=>`<option value="${mo.y}-${mo.m}" ${this.reportMonth===`${mo.y}-${mo.m}`?"selected":""}>${monthNamesEn[mo.m]} ${mo.y}</option>`).join("")}
+        </select>
+        <div class="stat-row" style="margin-top:12px;">
+          <div class="stat"><b>${trainingItems.length}</b><span>${this.t2("Training days","研修日数")}</span></div>
+          <div class="stat"><b>${completed.length}</b><span>${this.t("dash.completed")}</span></div>
+          <div class="stat"><b>${trainingItems.length-completed.length}</b><span>${this.t2("Open","未完了")}</span></div>
+        </div>
+        <div class="btn-row">
+          <button class="btn secondary" onclick="app.exportCSV('${this.reportMonth}')">⬇ ${this.t("reports.export")}</button>
+          <button class="btn ghost" onclick="window.print()">🖨 ${this.t("reports.print")}</button>
+        </div>
+      </div>
+      <div class="card">
+        ${items.map(e=>{
+          const act = this.getActivity(e.id);
+          const learn = act.record && (act.record.learnings || act.record.actualContent);
+          return `<div class="list-row" onclick="app.openDay('${e.id}')">
+            <div class="list-date"><b>${new Date(e.date+"T00:00:00").getDate()}</b><span>${this.dowShort(e.date)}</span></div>
+            <div class="list-main">
+              <div class="t">${escapeHtml(this.entryTitle(e))}</div>
+              <div class="o">${learn ? escapeHtml(learn).slice(0,80) : `<span class="placeholder-fill">${this.t2("No record yet","記録なし")}</span>`}</div>
+            </div>
+            <span class="badge ${this.statusOf(e)}">${this.t2(STATUS_LABEL[this.statusOf(e)].en, STATUS_LABEL[this.statusOf(e)].ja)}</span>
+          </div>`;
+        }).join("")}
+      </div>`;
+  },
+  onReportMonth(v){ this.reportMonth = v; this.renderReports(); },
+  exportCSV(monthKey){
+    const [ry,rm] = monthKey.split("-").map(Number);
+    const items = this.schedule.filter(e=>{ const d=new Date(e.date+"T00:00:00"); return d.getFullYear()===ry && d.getMonth()===rm; });
+    const rows = [["Date","Day","Title (EN)","Title (JA)","Owner (EN)","Owner (JA)","Status","Completed","Key Learnings","Manager Comment","Confirmed"]];
+    items.forEach(e=>{
+      const act = this.getActivity(e.id);
+      rows.push([
+        e.date, e.dayOfWeek, e.titleEn, e.titleJa, e.ownerEn, e.ownerJa, this.statusOf(e),
+        act.record.completed ? "Yes":"No",
+        (act.record.learnings||act.record.actualContent||"").replace(/\n/g," "),
+        (act.review.managerComment||"").replace(/\n/g," "),
+        act.review.confirmed ? "Yes":"No"
+      ]);
+    });
+    const csv = rows.map(r=>r.map(csvEscape).join(",")).join("\n");
+    const blob = new Blob([csv], {type:"text/csv;charset=utf-8;"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = `MNZ_Training_Report_${monthKey}.csv`;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  },
+
+  // ================= DAY DETAIL =================
+  openDay(id){
+    this.currentDayId = id;
+    this.renderDaySheet(id);
+    document.getElementById("dayOverlay").classList.add("open");
+  },
+  renderDaySheet(id){
+    const e = this.schedule.find(x=>x.id===id);
+    if(!e) return;
+    const act = this.getActivity(id);
+    const st = this.statusOf(e);
+    const isManager = this.profile && this.profile.role === "manager";
+    const isIntern = this.profile && this.profile.role === "intern";
+    const rec = act.record || {};
+    const rev = act.review || {};
+
+    const statusOptions = STATUS_LIST.map(s=>`<option value="${s}" ${st===s?"selected":""}>${this.t2(STATUS_LABEL[s].en,STATUS_LABEL[s].ja)}</option>`).join("");
+
+    let html = `
+      <div class="sheet-head">
+        <div>
+          <div class="subtle">${this.fmtDate(e.date)} (${this.dowShort(e.date)}) · ${e.date}</div>
+          <b style="font-size:17px; display:block; margin-top:2px;">${escapeHtml(this.entryTitle(e))}</b>
+        </div>
+        <button class="sheet-close" onclick="app.closeOverlay('dayOverlay')">✕</button>
+      </div>
+      <span class="badge ${st}">${this.t2(STATUS_LABEL[st].en,STATUS_LABEL[st].ja)}</span>
+      <span class="badge" style="background:var(--teal-100); color:var(--teal-900); margin-left:6px;">👤 ${escapeHtml(this.entryOwner(e))}</span>
+      ${rev.confirmed ? `<div style="margin-top:10px;"><span class="hanko">${this.t2("CONFIRMED","承認済")}</span></div>` : ""}
+    `;
+
+    if(e.category === "holiday"){
+      html += `<hr class="section-divider"><p class="subtle">${this.t2("This is a public holiday — no training scheduled.","この日は祝日のため研修はありません。")}</p>`;
+      html += `<div class="btn-row"><button class="btn ghost block" onclick="app.closeOverlay('dayOverlay')">${this.t("close")}</button></div>`;
+      document.getElementById("daySheet").innerHTML = html;
+      return;
+    }
+
+    // ---- Manager: change schedule ----
+    if(isManager){
+      html += `
+        <hr class="section-divider">
+        <h2 style="font-size:12.5px; text-transform:uppercase; color:var(--ink-soft); font-weight:700; margin:0 0 8px;">${this.t("sched.changeSchedule")}</h2>
+        <label class="field-label" style="margin-top:0;">${this.t("sched.status")}</label>
+        <select id="fldStatus">${statusOptions}</select>
+        <label class="field-label">${this.t("sched.newDate")}</label>
+        <input type="date" id="fldNewDate" value="${e.date}">
+        <label class="field-label">${this.t("sched.reason")}</label>
+        <input type="text" id="fldReason" placeholder="${this.t2('Optional — why is this changing?','任意：変更理由')}">
+        <div class="btn-row"><button class="btn secondary block" onclick="app.saveScheduleChange('${id}')">${this.t("sched.saveChange")}</button></div>
+      `;
+    }
+
+    // ---- Trainee record ----
+    html += `
+      <hr class="section-divider">
+      <h2 style="font-size:12.5px; text-transform:uppercase; color:var(--ink-soft); font-weight:700; margin:0 0 8px;">${this.t("record.title")}</h2>
+      <label style="display:flex; align-items:center; gap:8px; font-size:13.5px; font-weight:600;">
+        <input type="checkbox" id="fldCompleted" ${rec.completed?"checked":""} style="width:17px;height:17px;"> ${this.t("record.completed")}
+      </label>
+      <label class="field-label">${this.t("record.content")}</label>
+      <textarea id="fldContent" placeholder="${this.t2('e.g. Sat in on the customer service team handling BPCS order entries...','例：カスタマーサービスチームに同席し、BPCSでの受注入力を見学...')}">${escapeHtml(rec.actualContent||"")}</textarea>
+      <label class="field-label">${this.t("record.learnings")}</label>
+      <textarea id="fldLearnings">${escapeHtml(rec.learnings||"")}</textarea>
+      <label class="field-label">${this.t("record.observations")}</label>
+      <textarea id="fldObservations">${escapeHtml(rec.observations||"")}</textarea>
+      <label class="field-label">${this.t("record.questions")}</label>
+      <textarea id="fldQuestions">${escapeHtml(rec.questions||"")}</textarea>
+      <label class="field-label">${this.t("record.issues")}</label>
+      <textarea id="fldIssues">${escapeHtml(rec.issues||"")}</textarea>
+      <label class="field-label">${this.t("record.nextActions")}</label>
+      <textarea id="fldNextActions">${escapeHtml(rec.nextActions||"")}</textarea>
+      <label class="field-label">${this.t("record.memo")}</label>
+      <textarea id="fldMemo">${escapeHtml(rec.memo||"")}</textarea>
+      ${rec.updatedAt ? `<p class="subtle" style="margin-top:6px;">${this.t2("Last updated by","最終更新")} ${escapeHtml(rec.updatedBy||"")} · ${new Date(rec.updatedAt).toLocaleString()}</p>` : ""}
+      <div class="btn-row"><button class="btn block" onclick="app.saveRecord('${id}')">${this.t("record.save")}</button></div>
+    `;
+
+    // ---- Manager review ----
+    html += `
+      <hr class="section-divider">
+      <h2 style="font-size:12.5px; text-transform:uppercase; color:var(--ink-soft); font-weight:700; margin:0 0 8px;">${this.t("review.title")}</h2>
+      <textarea id="fldReview" placeholder="${this.t('review.comment')}">${escapeHtml(rev.managerComment||"")}</textarea>
+      <label style="display:flex; align-items:center; gap:8px; font-size:13.5px; font-weight:600; margin-top:10px;">
+        <input type="checkbox" id="fldConfirm" ${rev.confirmed?"checked":""} style="width:17px;height:17px;" ${isManager?"":"disabled"}> ${this.t("review.confirm")}
+      </label>
+      ${rev.confirmedAt ? `<p class="subtle">${this.t2("Confirmed by","承認者")} ${escapeHtml(rev.managerName||"")} · ${new Date(rev.confirmedAt).toLocaleString()}</p>` : ""}
+      <div class="btn-row"><button class="btn secondary block" onclick="app.saveReview('${id}')" ${isManager?"":"disabled"}>${this.t("review.save")}</button></div>
+      ${!isManager ? `<p class="subtle" style="margin-top:4px;">${this.t2("Only managers can confirm sessions. Switch your role in your profile if needed.","承認はマネージャーのみ可能です。必要に応じてプロフィールで役割を変更してください。")}</p>` : ""}
+
+      <label class="field-label">${this.t("voice.record")}</label>
+      <button class="rec-btn" id="recBtn" onclick="app.toggleRecording('${id}')">🎙️ <span id="recBtnLabel">${this.t("voice.record")}</span></button>
+      <div id="voiceList" style="margin-top:10px;">
+        ${act.voiceNotes.length ? act.voiceNotes.map(v=>`
+          <div class="voice-item">
+            <audio controls src="${v.audioBase64}"></audio>
+            <div class="voice-meta">${escapeHtml(v.by)}<br>${new Date(v.at).toLocaleDateString()}</div>
+          </div>`).join("") : `<p class="subtle">${this.t('voice.none')}</p>`}
+      </div>
+    `;
+
+    // ---- history ----
+    html += `
+      <hr class="section-divider">
+      <h2 style="font-size:12.5px; text-transform:uppercase; color:var(--ink-soft); font-weight:700; margin:0 0 8px;">${this.t("history.title")}</h2>
+      ${act.history.length ? act.history.map(h=>`<div class="history-item"><b>${escapeHtml(h.field)}</b>: "${escapeHtml(h.oldValue)}" → "${escapeHtml(h.newValue)}"${h.reason ? " — "+escapeHtml(h.reason) : ""}<br><span>${escapeHtml(h.by)} · ${new Date(h.at).toLocaleString()}</span></div>`).join("") : `<p class="subtle">${this.t('history.none')}</p>`}
+      <div class="btn-row"><button class="btn ghost block" onclick="app.closeOverlay('dayOverlay')">${this.t("close")}</button></div>
+    `;
+
+    document.getElementById("daySheet").innerHTML = html;
+  },
+
+  async saveScheduleChange(id){
+    const e = this.schedule.find(x=>x.id===id);
+    const act = this.getActivity(id);
+    const newStatus = document.getElementById("fldStatus").value;
+    const newDate = document.getElementById("fldNewDate").value;
+    const reason = document.getElementById("fldReason").value.trim();
+    const by = this.profile ? this.profile.name : "Unknown";
+    const now = new Date().toISOString();
+    const historyRows = [];
+    const patch = {};
+    if(newStatus !== e.status){
+      historyRows.push({schedule_id:id, field:"status", old_value:e.status||"planned", new_value:newStatus, reason, by_name:by});
+      act.history.push({at:now, by, field:"status", oldValue:e.status||"planned", newValue:newStatus, reason});
+      e.status = newStatus; patch.status = newStatus;
+    }
+    if(newDate !== e.date){
+      historyRows.push({schedule_id:id, field:"date", old_value:e.date, new_value:newDate, reason, by_name:by});
+      act.history.push({at:now, by, field:"date", oldValue:e.date, newValue:newDate, reason});
+      e.date = newDate; patch.date = newDate;
+      if(e.status === "planned"){ e.status = "changed"; patch.status = "changed"; }
+    }
+    if(Object.keys(patch).length){
+      await sb.from("schedule").update(patch).eq("id", id);
+    }
+    if(historyRows.length){
+      await sb.from("schedule_history").insert(historyRows);
+    }
+    this.toast(this.t("toast.saved"));
+    this.renderDaySheet(id); this.render();
+  },
+
+  async saveRecord(id){
+    const act = this.getActivity(id);
+    const now = new Date().toISOString();
+    const by = this.profile ? this.profile.name : "";
+    act.record = {
+      completed: document.getElementById("fldCompleted").checked,
+      actualContent: document.getElementById("fldContent").value,
+      learnings: document.getElementById("fldLearnings").value,
+      observations: document.getElementById("fldObservations").value,
+      questions: document.getElementById("fldQuestions").value,
+      issues: document.getElementById("fldIssues").value,
+      nextActions: document.getElementById("fldNextActions").value,
+      memo: document.getElementById("fldMemo").value,
+      updatedAt: now,
+      updatedBy: by
+    };
+    await sb.from("records").upsert({
+      schedule_id: id, completed: act.record.completed, actual_content: act.record.actualContent||null,
+      learnings: act.record.learnings||null, observations: act.record.observations||null,
+      questions: act.record.questions||null, issues: act.record.issues||null,
+      next_actions: act.record.nextActions||null, memo: act.record.memo||null,
+      updated_at: now, updated_by: by
+    }, {onConflict:"schedule_id"});
+    const e = this.schedule.find(x=>x.id===id);
+    if(e && act.record.completed && e.status !== "confirmed"){
+      e.status = "completed";
+      await sb.from("schedule").update({status:"completed"}).eq("id", id);
+    }
+    this.toast(this.t("toast.saved"));
+    this.render();
+  },
+
+  async saveReview(id){
+    const act = this.getActivity(id);
+    const wasConfirmed = act.review.confirmed;
+    const nowConfirmed = document.getElementById("fldConfirm").checked;
+    const managerName = this.profile ? this.profile.name : "";
+    act.review.managerComment = document.getElementById("fldReview").value;
+    act.review.managerName = managerName;
+    act.review.confirmed = nowConfirmed;
+    if(nowConfirmed && !wasConfirmed) act.review.confirmedAt = new Date().toISOString();
+    if(!nowConfirmed) act.review.confirmedAt = null;
+    await sb.from("reviews").upsert({
+      schedule_id: id, manager_name: managerName, manager_comment: act.review.managerComment||null,
+      confirmed: nowConfirmed, confirmed_at: act.review.confirmedAt
+    }, {onConflict:"schedule_id"});
+    const e = this.schedule.find(x=>x.id===id);
+    if(e && nowConfirmed){
+      e.status = "confirmed";
+      await sb.from("schedule").update({status:"confirmed"}).eq("id", id);
+    }
+    this.toast(this.t("toast.saved"));
+    this.renderDaySheet(id); this.render();
+  },
+
+  // ---------- voice recording ----------
+  async toggleRecording(id){
+    if(this.mediaRecorder && this.mediaRecorder.state === "recording"){
+      this.mediaRecorder.stop();
+      return;
+    }
+    try{
+      const stream = await navigator.mediaDevices.getUserMedia({audio:true});
+      this.recChunks = [];
+      this.mediaRecorder = new MediaRecorder(stream);
+      this.recTargetId = id;
+      this.mediaRecorder.ondataavailable = (ev)=> this.recChunks.push(ev.data);
+      this.mediaRecorder.onstop = async ()=>{
+        clearInterval(this.recTimer);
+        stream.getTracks().forEach(t=>t.stop());
+        const blob = new Blob(this.recChunks, {type:"audio/webm"});
+        if(blob.size > 4_800_000){
+          app.toast(app.t2("Recording too long — keep it under ~2 minutes","録音が長すぎます。2分以内にしてください"));
+        } else {
+          const path = `${app.recTargetId}/${Date.now()}.webm`;
+          const { error: upErr } = await sb.storage.from("voice-notes").upload(path, blob, {contentType:"audio/webm"});
+          if(upErr){
+            app.toast(app.t2("Couldn't upload the recording","録音のアップロードに失敗しました"));
+          } else {
+            const { data: pub } = sb.storage.from("voice-notes").getPublicUrl(path);
+            const by = app.profile?app.profile.name:"";
+            await sb.from("voice_notes").insert({schedule_id: app.recTargetId, by_name: by, storage_path: path});
+            const act = app.getActivity(app.recTargetId);
+            act.voiceNotes.push({id:"v"+Date.now(), by, at:new Date().toISOString(), audioBase64: pub.publicUrl});
+            app.toast(app.t("toast.saved"));
+          }
+        }
+        document.getElementById("recBtn").classList.remove("recording");
+        document.getElementById("recBtnLabel").textContent = app.t("voice.record");
+        app.renderDaySheet(app.recTargetId);
+      };
+      this.mediaRecorder.start();
+      this.recSeconds = 0;
+      document.getElementById("recBtn").classList.add("recording");
+      document.getElementById("recBtnLabel").textContent = this.t("voice.stop");
+      this.recTimer = setInterval(()=>{
+        this.recSeconds++;
+        if(this.recSeconds >= 120){ this.mediaRecorder.stop(); }
+      }, 1000);
+    } catch(err){
+      this.toast(this.t2("Microphone access denied or unavailable","マイクにアクセスできません"));
+    }
+  },
+};
+
+function svgRing(pct){
+  const r=28, c=2*Math.PI*r, off = c - (pct/100)*c;
+  return `<svg width="72" height="72" viewBox="0 0 72 72">
+    <circle cx="36" cy="36" r="${r}" fill="none" stroke="#e2e2e2" stroke-width="8"/>
+    <circle cx="36" cy="36" r="${r}" fill="none" stroke="#008290" stroke-width="8" stroke-linecap="round"
+      stroke-dasharray="${c}" stroke-dashoffset="${off}" transform="rotate(-90 36 36)"/>
+    <text x="36" y="41" text-anchor="middle" font-size="16" font-weight="700" fill="#00525a">${pct}%</text>
+  </svg>`;
+}
+function escapeHtml(s){
+  if(s===undefined||s===null) return "";
+  return String(s).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
+}
+function csvEscape(v){
+  const s = String(v===undefined||v===null?"":v);
+  if(/[",\n]/.test(s)) return '"'+s.replace(/"/g,'""')+'"';
+  return s;
+}
+function blobToBase64(blob){
+  return new Promise((resolve,reject)=>{
+    const r = new FileReader();
+    r.onload = ()=>resolve(r.result);
+    r.onerror = reject;
+    r.readAsDataURL(blob);
+  });
+}
+function localStorage_safe_get(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
+function localStorage_safe_set(k,v){ try{ localStorage.setItem(k,v); }catch(e){} }
+
+app.init();
+</script>
+</body>
+</html>
